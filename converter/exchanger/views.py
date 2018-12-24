@@ -2,12 +2,14 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+from decimal import Decimal
+
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
 from models import CurrencyData
-from serializers import CurrencyDataSerializer
+from serializers import CurrencyDataSerializer, InputSerializer
 from oexchangerateconnector import OpenExchangeRateConnector
 from config import OPEN_EXCHANGE_RATES_API_KEY
 
@@ -31,6 +33,30 @@ def currency_rate_list(request):
             serializer.save()
             return JsonResponse(serializer.data, status=201)
         return JsonResponse(serializer.errors, status=400)
+
+
+
+@csrf_exempt
+def currency_convert(request):
+    if request.method == 'POST':
+        data = JSONParser().parse(request)
+        serializer = InputSerializer(data=data)
+        if serializer.is_valid():
+            a = serializer.data['currency_from']
+            b = serializer.data['currency_to']
+            c = serializer.data['amount']
+
+            c_from = CurrencyData.objects.get(short_name__exact=a)
+            c_to = CurrencyData.objects.get(short_name__exact=b)
+            result = Decimal(c) / c_from.exchange_rate * c_to.exchange_rate
+            data = {c + ' ' + a: str(round(result, 6)) + ' ' + b}
+            print data
+            return JsonResponse(data, status=201)
+
+        return JsonResponse(serializer.errors, status=400)
+
+
+# Question.objects.filter(question_text__startswith='What')
 
 
 @csrf_exempt

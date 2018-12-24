@@ -1,7 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from openexchangerates import OpenExchangeRatesClient
-from config import OPEN_EXCHANGE_RATES_API_KEY
+
+
+
+# write filter to set only Check Coruna, Euro, Polish Zlot and US
+# decorator for get_all_rates will be good
 
 
 class ExchangeRateData:
@@ -30,14 +34,4 @@ class OpenExchangeRateConnector:
             rates.append(ExchangeRateData(short_name=short_name, full_name=full_name, exchange_rate=exchange_rate))
         return rates
 
-
-# def dummy_test():
-#     client = OpenExchangeRateConnector(OPEN_EXCHANGE_RATES_API_KEY)
-#     r = client.get_all_rates()
-#
-#     for i in r:
-#         print i.short_name, '-->', i.full_name, '-->', i.exchange_rate
-#
-#
-# dummy_test()
 
