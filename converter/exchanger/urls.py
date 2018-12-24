@@ -2,6 +2,6 @@ from django.conf.urls import url
 import views
 
 urlpatterns = [
-    url('currencies/', views.currency_rate_list),
-    url('currencies/<int:pk>/', views.currency_rate_detail),
+    url(r'^currencies/([0-9]+)/$', views.currency_rate_detail),
+    url(r'^currencies/', views.currency_rate_list),
 ]
