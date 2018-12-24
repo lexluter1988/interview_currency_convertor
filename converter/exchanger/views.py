@@ -11,17 +11,23 @@ from rest_framework.parsers import JSONParser
 from models import CurrencyData
 from serializers import CurrencyDataSerializer, InputSerializer
 from oexchangerateconnector import OpenExchangeRateConnector
-from config import OPEN_EXCHANGE_RATES_API_KEY
+from config import OPEN_EXCHANGE_RATES_API_KEY, DAYS_OF_INACTIVITY
+from django.utils import timezone
 
 
 @csrf_exempt
 def currency_rate_list(request):
     if request.method == 'GET':
         rates = CurrencyData.objects.all()
+        # if no data about exchange rates, let's fill the DB
         if len(rates) == 0:
-            # need to update
             update_rates()
-        # elif outdated: need to update
+        # if rates are outdated more than 1 day, let's update them
+        elif (timezone.now() - rates[0].updated).days >= DAYS_OF_INACTIVITY:
+            CurrencyData.objects.all().delete()
+            update_rates()
+
+        rates = CurrencyData.objects.all()
 
         serializer = CurrencyDataSerializer(rates, many=True)
         return JsonResponse(serializer.data, safe=False)
@@ -33,7 +39,6 @@ def currency_rate_list(request):
             serializer.save()
             return JsonResponse(serializer.data, status=201)
         return JsonResponse(serializer.errors, status=400)
-
 
 
 @csrf_exempt
@@ -48,15 +53,13 @@ def currency_convert(request):
 
             c_from = CurrencyData.objects.get(short_name__exact=a)
             c_to = CurrencyData.objects.get(short_name__exact=b)
+
             result = Decimal(c) / c_from.exchange_rate * c_to.exchange_rate
             data = {c + ' ' + a: str(round(result, 6)) + ' ' + b}
-            print data
+
             return JsonResponse(data, status=201)
 
         return JsonResponse(serializer.errors, status=400)
-
-
-# Question.objects.filter(question_text__startswith='What')
 
 
 @csrf_exempt
