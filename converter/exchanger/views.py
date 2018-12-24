@@ -11,11 +11,10 @@ from rest_framework.parsers import JSONParser
 from models import CurrencyData
 from serializers import CurrencyDataSerializer, InputSerializer
 from oexchangerateconnector import OpenExchangeRateConnector
-from config import OPEN_EXCHANGE_RATES_API_KEY, DAYS_OF_INACTIVITY
+from config import OPEN_EXCHANGE_RATES_API_KEY, DAYS_OF_INACTIVITY, CURRENCY_PRECISION
 from django.utils import timezone
 
 
-@csrf_exempt
 def currency_rate_list(request):
     if request.method == 'GET':
         rates = CurrencyData.objects.all()
@@ -32,14 +31,6 @@ def currency_rate_list(request):
         serializer = CurrencyDataSerializer(rates, many=True)
         return JsonResponse(serializer.data, safe=False)
 
-    elif request.method == 'POST':
-        data = JSONParser().parse(request)
-        serializer = CurrencyDataSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(serializer.data, status=201)
-        return JsonResponse(serializer.errors, status=400)
-
 
 @csrf_exempt
 def currency_convert(request):
@@ -47,17 +38,8 @@ def currency_convert(request):
         data = JSONParser().parse(request)
         serializer = InputSerializer(data=data)
         if serializer.is_valid():
-            a = serializer.data['currency_from']
-            b = serializer.data['currency_to']
-            c = serializer.data['amount']
-
-            c_from = CurrencyData.objects.get(short_name__exact=a)
-            c_to = CurrencyData.objects.get(short_name__exact=b)
-
-            result = Decimal(c) / c_from.exchange_rate * c_to.exchange_rate
-            data = {c + ' ' + a: str(round(result, 6)) + ' ' + b}
-
-            return JsonResponse(data, status=201)
+            result = make_exchange(serializer.data)
+            return JsonResponse(result, status=201)
 
         return JsonResponse(serializer.errors, status=400)
 
@@ -73,18 +55,6 @@ def currency_rate_detail(request, pk):
         serializer = CurrencyDataSerializer(currency)
         return JsonResponse(serializer.data)
 
-    elif request.method == 'PUT':
-        data = JSONParser().parse(request)
-        serializer = CurrencyDataSerializer(currency, data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(serializer.data)
-        return JsonResponse(serializer.errors, status=400)
-
-    elif request.method == 'DELETE':
-        currency.delete()
-        return HttpResponse(status=204)
-
 
 def update_rates():
     client = OpenExchangeRateConnector(OPEN_EXCHANGE_RATES_API_KEY)
@@ -92,3 +62,19 @@ def update_rates():
     for rate in rates:
         data = CurrencyData(full_name=rate.full_name, short_name=rate.short_name, exchange_rate=rate.exchange_rate)
         data.save()
+
+
+def make_exchange(data):
+    currency_from = data['currency_from']
+    currency_to = data['currency_to']
+    amount = data['amount']
+
+    src_currency = CurrencyData.objects.get(short_name__exact=currency_from)
+    dst = CurrencyData.objects.get(short_name__exact=currency_to)
+
+    result = Decimal(amount) / src_currency.exchange_rate * dst.exchange_rate
+
+    # need to reformat this
+    data = {amount + ' ' + currency_from: str(round(result, CURRENCY_PRECISION)) + ' ' + currency_to}
+
+    return data
