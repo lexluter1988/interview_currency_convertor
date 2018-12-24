@@ -1,11 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+from config import CURRENCY_FILTER
+
 from openexchangerates import OpenExchangeRatesClient
-
-
-
-# write filter to set only Check Coruna, Euro, Polish Zlot and US
-# decorator for get_all_rates will be good
 
 
 class ExchangeRateData:
@@ -26,8 +23,11 @@ class OpenExchangeRateConnector:
         rates = []
 
         for currency in currencies:
-
             short_name = currency
+
+            if short_name not in CURRENCY_FILTER:
+                continue
+
             full_name = currencies[currency]
             exchange_rate = latest[currency]
 
