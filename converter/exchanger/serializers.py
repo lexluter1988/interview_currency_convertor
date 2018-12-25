@@ -14,4 +14,4 @@ class CurrencyDataSerializer(serializers.ModelSerializer):
 class InputSerializer(serializers.Serializer):
     currency_from = serializers.CharField()
     currency_to = serializers.CharField()
-    amount = serializers.CharField()
+    amount = serializers.DecimalField(max_digits=20, decimal_places=10)

@@ -6,6 +6,8 @@ from decimal import Decimal
 
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
+
+from messages import ApiMessages
 from models import CurrencyData
 from serializers import CurrencyDataSerializer, InputSerializer
 from oexchangerateconnector import OpenExchangeRateConnector
@@ -45,7 +47,7 @@ def currency_rate_detail(request, pk):
     try:
         currency = CurrencyData.objects.get(pk=pk)
     except CurrencyData.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(data=ApiMessages.CURRENCY_NO_INFO, status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'GET':
         serializer = CurrencyDataSerializer(currency)
@@ -62,12 +64,18 @@ def currency_convert(request):
         serializer = InputSerializer(data=data)
         if serializer.is_valid():
             try:
-                result = make_exchange(serializer.data)
+                src_currency = CurrencyData.objects.get(short_name__exact=data['currency_from'])
+                dst_currency = CurrencyData.objects.get(short_name__exact=data['currency_to'])
+                amount = data['amount']
+
+                result = make_exchange(src_currency, dst_currency, amount)
+
             except CurrencyData.DoesNotExist:
-                Response(status=status.HTTP_404_NOT_FOUND)
+                return Response(data=ApiMessages.CURRENCY_NOT_FOUND, status=status.HTTP_404_NOT_FOUND)
+
             return Response(result)
 
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(data=ApiMessages.INVALID_REQUEST_AMOUNT, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     else:
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
@@ -80,22 +88,6 @@ def update_rates():
         data.save()
 
 
-def make_exchange(data):
-    currency_from = data['currency_from']
-    currency_to = data['currency_to']
-    amount = data['amount']
-
-    try:
-        src_currency = CurrencyData.objects.get(short_name__exact=currency_from)
-        dst_currency = CurrencyData.objects.get(short_name__exact=currency_to)
-
-    except CurrencyData.DoesNotExist as e:
-        # TODO: make it cleaner
-        raise
-
+def make_exchange(src_currency, dst_currency, amount):
     result = Decimal(amount) / src_currency.exchange_rate * dst_currency.exchange_rate
-
-    # need to reformat this
-    data = {amount + ' ' + currency_from: str(round(result, CURRENCY_PRECISION)) + ' ' + currency_to}
-
-    return data
+    return str(round(result, CURRENCY_PRECISION))

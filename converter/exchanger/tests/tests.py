@@ -6,10 +6,9 @@ import json
 from django.urls import reverse
 from rest_framework import status
 
-# python manage.py test exchanger.tests
-# initialize the APIClient app
 from ..models import CurrencyData
 from ..serializers import CurrencyDataSerializer
+from ..messages import ApiMessages
 
 client = Client()
 
@@ -23,10 +22,16 @@ class BaseCurrencyDataTest(TestCase):
             'currency_to': "EUR",
             'amount': '10000'
         }
-        self.invalid_payload = {
+        self.invalid_amount = {
             'currency_from': 'CZK',
             'currency_to': "EUR",
             'amount': 'xxx'
+        }
+
+        self.invalid_currency = {
+            'currency_from': '111',
+            'currency_to': "1111",
+            'amount': '1000'
         }
 
         CurrencyData.objects.create(
@@ -71,7 +76,7 @@ class BaseCurrencyDataTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_convert_valid_currency(self):
-        answer = {u'10000 CZK': u'386.54107 EUR'}
+        answer = '386.54107'
         response = client.post(
             reverse('currency_convert'),
             data=json.dumps(self.valid_payload),
@@ -80,11 +85,24 @@ class BaseCurrencyDataTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, answer)
 
+    def test_convert_invalid_amount(self):
+        response = client.post(
+            reverse('currency_convert'),
+            data=json.dumps(self.invalid_amount),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertEqual(response.data, ApiMessages.INVALID_REQUEST_AMOUNT)
+
     def test_convert_invalid_currency(self):
         response = client.post(
             reverse('currency_convert'),
-            data=json.dumps(self.invalid_payload),
+            data=json.dumps(self.invalid_currency),
             content_type='application/json'
         )
-        # TODO: bug is here, test never pass
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data, ApiMessages.CURRENCY_NOT_FOUND)
+
+    def test_convert_invalid_request_type(self):
+        response = client.get(reverse('currency_convert'))
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
