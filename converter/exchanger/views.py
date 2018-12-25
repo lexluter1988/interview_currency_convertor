@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 
 from decimal import Decimal
 
+from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
 
@@ -16,6 +17,11 @@ from django.utils import timezone
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
+
+
+def index(request):
+    context = {}
+    return render(request, 'exchanger/index.html', context)
 
 
 @api_view(['GET'])
