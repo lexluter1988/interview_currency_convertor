@@ -9,15 +9,16 @@ exchanger/__init__.py                      0      0   100%
 exchanger/admin.py                         2      0   100%
 exchanger/apps.py                          4      0   100%
 exchanger/config.py                        4      0   100%
+exchanger/messages.py                      6      1    83%
 exchanger/migrations/0001_initial.py       6      0   100%
 exchanger/migrations/__init__.py           0      0   100%
 exchanger/models.py                        9      0   100%
-exchanger/oexchangerateconnector.py       22     15    32%
+exchanger/oexchangerateconnector.py       22      0   100%
 exchanger/serializers.py                  10      0   100%
 exchanger/tests/__init__.py                0      0   100%
-exchanger/tests/tests.py                  45      1    98%
+exchanger/tests/tests.py                  66      0   100%
 exchanger/urls.py                          3      0   100%
-exchanger/views.py                        64     17    73%
+exchanger/views.py                        63     13    79%
 manage.py                                 13      6    54%
 ----------------------------------------------------------
-TOTAL                                    208     43    79%
+TOTAL                                    234     24    90%

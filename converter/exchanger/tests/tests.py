@@ -9,6 +9,8 @@ from rest_framework import status
 from ..models import CurrencyData
 from ..serializers import CurrencyDataSerializer
 from ..messages import ApiMessages
+from ..config import OPEN_EXCHANGE_RATES_API_KEY
+from ..oexchangerateconnector import OpenExchangeRateConnector
 
 client = Client()
 
@@ -32,6 +34,10 @@ class BaseCurrencyDataTest(TestCase):
             'currency_from': '111',
             'currency_to': "1111",
             'amount': '1000'
+        }
+
+        self.invalid_json = {
+            'invalid': 'data'
         }
 
         CurrencyData.objects.create(
@@ -106,3 +112,22 @@ class BaseCurrencyDataTest(TestCase):
     def test_convert_invalid_request_type(self):
         response = client.get(reverse('currency_convert'))
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_convert_invalid_json(self):
+        response = client.post(
+            reverse('currency_convert'),
+            data=json.dumps(self.invalid_json),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class OpenExchangeRateConnectorTest(TestCase):
+    """ Test module for ExchangeRateConnectorTest"""
+    def test_get_all_rates(self):
+        client = OpenExchangeRateConnector(OPEN_EXCHANGE_RATES_API_KEY)
+        rates = client.get_all_rates()
+        self.assert_(len(rates) > 0)
+
+
+
