@@ -24,17 +24,8 @@ def currency_rate_list(request):
     Getting all Currencies with rates and latest update time.
     """
     if request.method == 'GET':
+        check_rates()
         rates = CurrencyData.objects.all()
-        # if no data about exchange rates, let's fill the DB
-        if len(rates) == 0:
-            update_rates()
-        # if rates are outdated more than 1 day, let's update them
-        elif (timezone.now() - rates[0].updated).days >= DAYS_OF_INACTIVITY:
-            CurrencyData.objects.all().delete()
-            update_rates()
-
-        rates = CurrencyData.objects.all()
-
         serializer = CurrencyDataSerializer(rates, many=True)
         return Response(serializer.data)
 
@@ -44,6 +35,7 @@ def currency_rate_list(request):
 
 @api_view(['GET'])
 def currency_rate_detail(request, pk):
+    check_rates()
     try:
         currency = CurrencyData.objects.get(pk=pk)
     except CurrencyData.DoesNotExist:
@@ -59,6 +51,7 @@ def currency_rate_detail(request, pk):
 @api_view(['POST'])
 @csrf_exempt
 def currency_convert(request):
+    check_rates()
     if request.method == 'POST':
         data = JSONParser().parse(request)
         serializer = InputSerializer(data=data)
@@ -78,6 +71,17 @@ def currency_convert(request):
         return Response(data=ApiMessages.INVALID_REQUEST_AMOUNT, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     else:
         return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+def check_rates():
+    rates = CurrencyData.objects.all()
+    # if no data about exchange rates, let's fill the DB
+    if len(rates) == 0:
+        update_rates()
+    # if rates are outdated more than 1 day, let's update them
+    elif (timezone.now() - rates[0].updated).days >= DAYS_OF_INACTIVITY:
+        CurrencyData.objects.all().delete()
+        update_rates()
 
 
 def update_rates():
