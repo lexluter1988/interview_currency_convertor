@@ -4,9 +4,7 @@ from __future__ import unicode_literals
 
 from decimal import Decimal
 
-from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
 from models import CurrencyData
 from serializers import CurrencyDataSerializer, InputSerializer
@@ -42,6 +40,20 @@ def currency_rate_list(request):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['GET'])
+def currency_rate_detail(request, pk):
+    try:
+        currency = CurrencyData.objects.get(pk=pk)
+    except CurrencyData.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = CurrencyDataSerializer(currency)
+        return Response(serializer.data)
+    else:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
 @api_view(['POST'])
 @csrf_exempt
 def currency_convert(request):
@@ -56,21 +68,6 @@ def currency_convert(request):
             return Response(result)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
-    else:
-        return Response(status=status.HTTP_400_BAD_REQUEST)
-
-
-@api_view(['GET'])
-@csrf_exempt
-def currency_rate_detail(request, pk):
-    try:
-        currency = CurrencyData.objects.get(pk=pk)
-    except CurrencyData.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
-
-    if request.method == 'GET':
-        serializer = CurrencyDataSerializer(currency)
-        return Response(serializer.data)
     else:
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
