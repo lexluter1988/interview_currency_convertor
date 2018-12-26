@@ -1,11 +1,43 @@
-<h1> Currency Converter </h1>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-<script src="static/scripts/main.js"></script>
-<form action="convert/" method="POST" id="currency-convert-form">
-{% csrf_token %}
-<div class="fieldWrapper" id="the_currency">
-    {{ form }}
-</div>
-<div id="results"></div>
-<input type="submit" value="Post" class="tiny button">
-</form>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="static/scripts/main.js"></script>
+    <title>Currency Converter</title>
+  </head>
+
+  <body>
+    <div>
+        <h1>Currency Converter</h1>
+    </div>
+
+    <!--{% load static %}-->
+    <form action="convert/" method="POST" id="currency-convert-form">
+        {% csrf_token %}
+        <div class="form-group">
+            <div id="source_currency">
+                {{ form.source_currency }}
+            </div>
+
+            <div class="fieldWrapper" id="amount">
+                {{ form.amount }}
+            </div>
+
+            <div class="fieldWrapper" id="destination_currency">
+                {{ form.destination_currency }}
+            </div>
+
+            <div class="fieldWrapper" id="result">
+                {{ form.result }}
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+        <!--<input type="submit" value="Post" class="tiny button">-->
+    </form>
+  </body>
+
+</html>
