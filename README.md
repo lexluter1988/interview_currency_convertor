@@ -43,7 +43,7 @@ $ curl -X POST --data '{"currency_from":"CZK", "currency_to": "EUR", "amount":"1
 * Configuration for supported currencies is inside converter/setting.py
  ```commandline
  # API KEY to https://openexchangerates.org/
-OPEN_EXCHANGE_RATES_API_KEY= '53a064e1bf4e4187b2caa4404415c8a7'
+OPEN_EXCHANGE_RATES_API_KEY= 'xxxxx'
 
 # Filter for currencies you'd like to support for conversion
 CURRENCY_FILTER = ['CZK', 'EUR', 'USD', 'PLN']
