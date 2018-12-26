@@ -18,7 +18,7 @@ exchanger/serializers.py                  10      0   100%
 exchanger/tests/__init__.py                0      0   100%
 exchanger/tests/tests.py                  66      0   100%
 exchanger/urls.py                          3      0   100%
-exchanger/views.py                        63     13    79%
+exchanger/views.py                        67     15    78%
 manage.py                                 13      6    54%
 ----------------------------------------------------------
-TOTAL                                    234     24    90%
+TOTAL                                    238     26    89%

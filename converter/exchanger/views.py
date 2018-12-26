@@ -8,6 +8,7 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
 
+from forms import CurrencyForm
 from messages import ApiMessages
 from models import CurrencyData
 from serializers import CurrencyDataSerializer, InputSerializer
@@ -20,7 +21,8 @@ from rest_framework import status
 
 
 def index(request):
-    context = {}
+    form = CurrencyForm()
+    context = {'form': form}
     return render(request, 'exchanger/index.html', context)
 
 

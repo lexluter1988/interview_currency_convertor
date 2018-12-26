@@ -1,1 +1,11 @@
-<h1> Hello World </h1>
+<h1> Currency Converter </h1>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="static/scripts/main.js"></script>
+<form action="convert/" method="POST" id="currency-convert-form">
+{% csrf_token %}
+<div class="fieldWrapper" id="the_currency">
+    {{ form }}
+</div>
+<div id="results"></div>
+<input type="submit" value="Post" class="tiny button">
+</form>
