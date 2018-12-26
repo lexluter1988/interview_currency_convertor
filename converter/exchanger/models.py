@@ -2,6 +2,8 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from django.conf import settings
+from django.utils import timezone
 
 
 class CurrencyData(models.Model):
@@ -12,3 +14,6 @@ class CurrencyData(models.Model):
 
     class Meta:
         ordering = ('updated',)
+
+    def is_outdated(self):
+        return (timezone.now() - self.updated).days >= settings.DAYS_OF_INACTIVITY

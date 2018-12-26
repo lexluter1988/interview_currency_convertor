@@ -5,7 +5,6 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.shortcuts import render
-from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -84,7 +83,7 @@ def check_rates():
     if not CurrencyData.objects.exists():
         update_rates()
     # if rates are outdated more than 1 day, let's update them
-    elif (timezone.now() - CurrencyData.objects.last().updated).days >= settings.DAYS_OF_INACTIVITY:
+    elif CurrencyData.objects.last().is_outdated():
         CurrencyData.objects.all().delete()
         update_rates()
 
