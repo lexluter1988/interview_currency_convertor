@@ -120,3 +120,17 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# Exchanger Application Settings
+
+# API KEY to https://openexchangerates.org/
+OPEN_EXCHANGE_RATES_API_KEY= '53a064e1bf4e4187b2caa4404415c8a7'
+
+# Filter for currencies you'd like to support for conversion
+CURRENCY_FILTER = ['CZK', 'EUR', 'USD', 'PLN']
+
+# Period of currencies exchange rate update
+DAYS_OF_INACTIVITY = 1
+
+# Precision of returned exchange
+CURRENCY_PRECISION = 5

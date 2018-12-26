@@ -1,23 +1,23 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
 from decimal import Decimal
 
+from django.conf import settings
 from django.shortcuts import render
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework import status
+from rest_framework.decorators import api_view
 from rest_framework.parsers import JSONParser
+from rest_framework.response import Response
+
 
 from forms import CurrencyForm
 from messages import ApiMessages
 from models import CurrencyData
-from serializers import CurrencyDataSerializer, InputSerializer
 from oexchangerateconnector import OpenExchangeRateConnector
-from config import OPEN_EXCHANGE_RATES_API_KEY, DAYS_OF_INACTIVITY, CURRENCY_PRECISION
-from django.utils import timezone
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework import status
+from serializers import CurrencyDataSerializer, InputSerializer
 
 
 def index(request):
@@ -37,8 +37,7 @@ def currency_rate_list(request):
         serializer = CurrencyDataSerializer(rates, many=True)
         return Response(serializer.data)
 
-    else:
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+    return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET'])
@@ -76,24 +75,22 @@ def currency_convert(request):
 
             return Response(result)
 
-        return Response(data=ApiMessages.INVALID_REQUEST_AMOUNT, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    else:
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response(data=ApiMessages.INVALID_REQUEST_AMOUNT, status=status.HTTP_400_BAD_REQUEST)
+    return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 def check_rates():
-    rates = CurrencyData.objects.all()
     # if no data about exchange rates, let's fill the DB
-    if len(rates) == 0:
+    if not CurrencyData.objects.exists():
         update_rates()
     # if rates are outdated more than 1 day, let's update them
-    elif (timezone.now() - rates[0].updated).days >= DAYS_OF_INACTIVITY:
+    elif (timezone.now() - CurrencyData.objects.last().updated).days >= settings.DAYS_OF_INACTIVITY:
         CurrencyData.objects.all().delete()
         update_rates()
 
 
 def update_rates():
-    client = OpenExchangeRateConnector(OPEN_EXCHANGE_RATES_API_KEY)
+    client = OpenExchangeRateConnector(settings.OPEN_EXCHANGE_RATES_API_KEY)
     rates = client.get_all_rates()
     for rate in rates:
         data = CurrencyData(full_name=rate.full_name, short_name=rate.short_name, exchange_rate=rate.exchange_rate)
@@ -102,4 +99,4 @@ def update_rates():
 
 def make_exchange(src_currency, dst_currency, amount):
     result = Decimal(amount) / src_currency.exchange_rate * dst_currency.exchange_rate
-    return str(round(result, CURRENCY_PRECISION))
+    return str(round(result, settings.CURRENCY_PRECISION))

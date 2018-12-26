@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from django.test import TestCase, Client
 import json
+
+from django.conf import settings
+from django.test import TestCase, Client
 from django.urls import reverse
 from rest_framework import status
 
-from ..models import CurrencyData
-from ..serializers import CurrencyDataSerializer
 from ..messages import ApiMessages
-from ..config import OPEN_EXCHANGE_RATES_API_KEY
+from ..models import CurrencyData
 from ..oexchangerateconnector import OpenExchangeRateConnector
+from ..serializers import CurrencyDataSerializer
 
 client = Client()
 
@@ -97,7 +98,7 @@ class BaseCurrencyDataTest(TestCase):
             data=json.dumps(self.invalid_amount),
             content_type='application/json'
         )
-        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data, ApiMessages.INVALID_REQUEST_AMOUNT)
 
     def test_convert_invalid_currency(self):
@@ -119,13 +120,13 @@ class BaseCurrencyDataTest(TestCase):
             data=json.dumps(self.invalid_json),
             content_type='application/json'
         )
-        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
 class OpenExchangeRateConnectorTest(TestCase):
     """ Test module for ExchangeRateConnectorTest"""
     def test_get_all_rates(self):
-        client = OpenExchangeRateConnector(OPEN_EXCHANGE_RATES_API_KEY)
+        client = OpenExchangeRateConnector(settings.OPEN_EXCHANGE_RATES_API_KEY)
         rates = client.get_all_rates()
         self.assert_(len(rates) > 0)
 

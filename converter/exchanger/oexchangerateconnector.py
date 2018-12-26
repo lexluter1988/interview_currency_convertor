@@ -1,7 +1,5 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
-from config import CURRENCY_FILTER
-
+from django.conf import settings
 from openexchangerates import OpenExchangeRatesClient
 
 
@@ -25,7 +23,7 @@ class OpenExchangeRateConnector:
         for currency in currencies:
             short_name = currency
 
-            if short_name not in CURRENCY_FILTER:
+            if short_name not in settings.CURRENCY_FILTER:
                 continue
 
             full_name = currencies[currency]
