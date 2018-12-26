@@ -15,7 +15,7 @@
         <h1>Currency Converter</h1>
     </div>
 
-    <!--{% load static %}-->
+    {% load static %}
     <form action="convert/" method="POST" id="currency-convert-form">
         {% csrf_token %}
         <div class="form-group">
@@ -36,7 +36,6 @@
             </div>
         </div>
         <button type="submit" class="btn btn-primary">Submit</button>
-        <!--<input type="submit" value="Post" class="tiny button">-->
     </form>
   </body>
 
